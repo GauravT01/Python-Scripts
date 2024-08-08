@@ -113,4 +113,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-C:\Users\tiwari.g\OneDrive - MEDIA.NET SOFTWARE SERVICES (INDIA) PRIVATE LIMITED\Documents\Python for automate\data.json
