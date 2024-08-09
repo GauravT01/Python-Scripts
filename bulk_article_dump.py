@@ -83,7 +83,7 @@ def fetch_and_save_articles(domain, tld):
             result_dicts = [dict(zip(column_names, row)) for row in result]
 
             # Define the path to the target directory
-            target_folder = r'c:/Users/tiwari.g/Downloads'
+            target_folder = r'/mnt/c/Users/tiwari.g/Downloads'
             if not os.path.exists(target_folder):
                 os.makedirs(target_folder)
 
@@ -111,10 +111,17 @@ def fetch_and_save_articles(domain, tld):
 
 def main():
     # Specify the absolute path to the Excel file
-    excel_file_path = r'C:/Users/tiwari.g/OneDrive - MEDIA.NET SOFTWARE SERVICES (INDIA) PRIVATE LIMITED\Documents/Python for automate/Bulk_Article_dump/ADdata.xlsx'
+    excel_file_path = '/mnt/c/Users/tiwari.g/OneDrive - MEDIA.NET SOFTWARE SERVICES (INDIA) PRIVATE LIMITED/Documents/Python for automate/Bulk_Article_dump/ADdata.xlsx'
     
-    # Read the Excel file using pandas
-    df = pd.read_excel(excel_file_path)
+    try:
+        # Read the Excel file using pandas
+        df = pd.read_excel(excel_file_path)
+    except FileNotFoundError:
+        print(f"File not found: {excel_file_path}")
+        return
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return
 
     # Iterate over each row in the DataFrame
     for index, row in df.iterrows():
