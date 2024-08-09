@@ -41,5 +41,5 @@ try:
     
 finally:
     # Close the browser
-    time.sleep(5)
+    time.sleep(3)
     driver.quit()
