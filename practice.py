@@ -1,20 +1,15 @@
-"""
 print('whats your Name ?')
 myname = input()
 print ('Hello '+ myname)
 print (len(myname))
-"""
 
 #if-else
-'''
 name = 'aa'
 if name == 'Gaurav':
     print('name matched')
 else:
     print('Name not matched')
-'''
 
-'''
 month = 'June'
 
 month = input('Please give month = ')
@@ -104,39 +99,37 @@ def traintiming():
 
 traintiming()
 
-'''
 
 #Calculator function
-'''
+
 opertaion = input('Please Enter the Operation (+,- , /, *) =') #Global Variable
 def calculator():
         A = float(input('Please enter A = ')) #Local variable
         B = float(input('Please enter B = '))
 
         
-            try:                                   #Try/ Except block
-                    if opertaion == '+':
-                        sum = A + B
-                        print('Sum = ',sum)
-                    elif opertaion == '-':
-                        sub = A - B
-                        print('Sub = ',sub)
-                    elif opertaion == '*':
-                         multiply = A * B
-                         print('Multiply = ',multiply)
-                    elif opertaion == '/':
-                        divide = A / B
-                        print('Divide = ',divide)
-            except ZeroDivisionError :
+        try:                                   #Try/ Except block
+                        if opertaion == '+':
+                            sum = A + B
+                            print('Sum = ',sum)
+                        elif opertaion == '-':
+                            sub = A - B
+                            print('Sub = ',sub)
+                        elif opertaion == '*':
+                            multiply = A * B
+                            print('Multiply = ',multiply)
+                        elif opertaion == '/':
+                            divide = A / B
+                            print('Divide = ',divide)
+        except ZeroDivisionError :
                     print('ERROR!!!,You tried dividing by 0')
 
 
 calculator()
 
- '''   
-        
+######################   
 #GuesstheNumberGame
-'''  
+
 import random
 print('Welcome to play Guessing Number Game!!!')
 name = input('Whats your Name = ')
@@ -168,9 +161,9 @@ if guess == secretnum:
 else :
     print('Nope the number was '+ str(secretnum))
 
-'''
+######################
 #list
-'''
+
 spam = ['man','women','child','alien','animal']
 
 spam[0]  #result - 'man' , #here square bracket contains INDEX value
@@ -204,9 +197,9 @@ list('GAURAV')    #result = ['G', 'A', 'U', 'R', 'A', 'V']
 'man' in spam  #True
 'man' not in spam  #False
 
-'''
+######################
+#GUESSING NUMBER GAME
 
-'''
 import random
 
 def save_high_score(name, score):
@@ -269,96 +262,4 @@ if guess == secretnum:
     save_high_score(name, guesstaken)
 else:
     print(f'Sorry, {name}. The number was {secretnum}. Better luck next time!')
-
-'''
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
