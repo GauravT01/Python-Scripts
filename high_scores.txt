@@ -1,6 +1,0 @@
-Gaurav: 3
-AA: 3
-BB: 3
-mukti: 6
-Ga: 4
-mukti: 3

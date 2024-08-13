@@ -32,7 +32,6 @@ def main():
         try:
             # Create a cursor object
             cursor = connection.cursor()
-
             # SQL query to fetch the desired data
             query = f'''
             SELECT
@@ -67,11 +66,10 @@ def main():
                     FROM wp_postmeta wpm3 
                     WHERE wpm3.post_id = wp_post.ID AND wpm3.meta_key = 'wp_sem_cf_subtitle'
                     LIMIT 1
-                ) AS subtitle,
-                wp_post.post_content
+                ) AS subtitle            
             FROM wp_posts wp_post
             WHERE wp_post.post_type = 'post' AND wp_post.post_status = 'publish';
-            '''
+            ''' # wp_post.post_content removed from query
 
             # Execute the SQL query
             cursor.execute(query)
@@ -84,7 +82,7 @@ def main():
             result_dicts = [dict(zip(column_names, row)) for row in result]
 
             # Define the path to the Windows Downloads directory in WSL
-            downloads_folder = 'c:/Users/tiwari.g/Downloads'
+            downloads_folder = r'/mnt/c/Users/tiwari.g/Downloads'
             csv_file = os.path.join(downloads_folder, f'{Domain_name}_articledump.csv')
 
             # Ensure the downloads folder exists
@@ -92,13 +90,15 @@ def main():
                 os.makedirs(downloads_folder)
 
             # Write the JSON data to a CSV file with progress bar
-            with open(csv_file, 'w', newline='', encoding='utf-8') as csv_obj:
+            with open(csv_file, 'w', newline='', encoding='utf-8-sig') as csv_obj: #utf-8-sig
                 csv_writer = csv.writer(csv_obj)
                 # Write the header
                 csv_writer.writerow(column_names)
                 # Write the rows with progress bar
                 for row_dict in tqdm(result_dicts, desc="Downloading", unit="rows"):
-                    csv_writer.writerow(row_dict.values())
+                    csv_writer.writerow([str(value) if value is not None else '' for value in row_dict.values()])
+                    # csv_writer.writerow(row_dict.values())
+                    # print(row_dict.values())
 
             print(f"Data has been written to {csv_file} successfully.")
 

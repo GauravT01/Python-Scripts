@@ -1,1 +1,0 @@
-select * from users where user_name like '%pankaj.Kuma%'
