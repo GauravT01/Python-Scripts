@@ -1,169 +1,279 @@
-import mysql.connector
-from mysql.connector import Error
-import csv
-import os
-from tqdm import tqdm
-
-def create_connection(db_name):
-    try:
-        connection = mysql.connector.connect(
-            host="sem-prod-wordpress-galera.service.gcp-us-west-1.consul",
-            user="sem_wordpress_sites_ro",
-            password="OkwPBEkE2o2jYKuhFmH0lQA09Up5nuEV",
-            database=db_name,
-            charset='utf8mb4',
-            collation='utf8mb4_unicode_ci'
-        )
-        connection.set_charset_collation('utf8mb4', 'utf8mb4_unicode_ci')
-        print(f"Connection to {db_name} database successful")
-        return connection
-    except Error as e:
-        print(f"The error '{e}' occurred")
-        return None
-
-def sanitize_value(value):
-    """Sanitize individual cell values to ensure UTF-8 consistency."""
-    if isinstance(value, bytes):
-        try:
-            return value.decode('utf-8')
-        except UnicodeDecodeError:
-            # Handle specific erroneous byte sequences by trying alternative decoding
-            return value.decode('latin1')
-    return str(value)
-
-def main():
-    domain = input("Enter the domain name you want to connect to: ")
-    tld = input("Enter the TLD of your domain name: ")
-    db_name = domain + "_" + tld
-    Domain_name = domain + "." + tld
-
-    connection = create_connection(db_name)
-
-    if connection:
-        try:
-            cursor = connection.cursor()
-            cursor.execute("SET NAMES utf8mb4;")
-            cursor.execute("SET CHARACTER SET utf8mb4;")
-            cursor.execute("SET collation_connection = 'utf8mb4_unicode_ci';")
-
-            # SQL query to fetch the desired data
-            query = f'''
-            SELECT
-                wp_posts.ID,
-                wp_posts.post_title,
-                wp_posts.post_date,
-                wp_posts.post_status,
-                CONCAT("https://{Domain_name}/", wp_posts.post_name, "/") AS slug,
-                (SELECT GROUP_CONCAT(wt.name) FROM wp_term_relationships wtr
-                 JOIN wp_term_taxonomy wtt ON wtt.term_taxonomy_id = wtr.term_taxonomy_id
-                 JOIN wp_terms wt ON wt.term_id = wtt.term_id
-                 WHERE wtr.object_id = wp_posts.ID AND wtt.taxonomy = 'post_tag') AS tags,
-                (SELECT GROUP_CONCAT(wt.name) FROM wp_term_relationships wtr
-                 JOIN wp_term_taxonomy wtt ON wtt.term_taxonomy_id = wtr.term_taxonomy_id
-                 JOIN wp_terms wt ON wt.term_id = wtt.term_id
-                 WHERE wtr.object_id = wp_posts.ID AND wtt.taxonomy = 'category') AS categories,
-                (SELECT CONCAT("https://{Domain_name}/wp-content/uploads/", wpm2.meta_value)
-                 FROM wp_postmeta wpm1
-                 JOIN wp_postmeta wpm2 ON wpm1.meta_value = wpm2.post_id
-                 WHERE wpm1.meta_key = '_thumbnail_id' AND wpm1.post_id = wp_posts.ID LIMIT 1) AS image_url,
-                (SELECT meta_value FROM wp_postmeta wpm3 
-                 WHERE wpm3.post_id = wp_posts.ID AND wpm3.meta_key = 'wp_sem_cf_subtitle' LIMIT 1) AS subtitle,
-                wp_posts.post_content
-            FROM wp_posts
-            WHERE wp_posts.post_type = 'post' AND wp_posts.post_status = 'publish';
-            '''
-
-            # Execute the SQL query
-            cursor.execute(query)
-
-            # Fetch all the rows
-            result = cursor.fetchall()
-            column_names = [i[0] for i in cursor.description]
-
-            # Convert the result to a list of dictionaries
-            result_dicts = []
-            for row in tqdm(result, desc="Processing rows", unit="row"):
-                sanitized_row = [sanitize_value(value) for value in row]
-                result_dicts.append(dict(zip(column_names, sanitized_row)))
-
-            # Define the path to the Windows Downloads directory in WSL
-            downloads_folder = r'/mnt/c/Users/tiwari.g/Downloads'
-            csv_file = os.path.join(downloads_folder, f'{Domain_name}_articledump.csv')
-
-            # Ensure the downloads folder exists
-            if not os.path.exists(downloads_folder):
-                os.makedirs(downloads_folder)
-
-            # Write the JSON data to a CSV file with progress bar
-            with open(csv_file, 'w', newline='', encoding='utf-8') as csv_obj:
-                csv_writer = csv.writer(csv_obj)
-                # Write the header
-                csv_writer.writerow(column_names)
-                # Write the rows with progress bar
-                for row_dict in tqdm(result_dicts, desc="Writing to CSV", unit="rows"):
-                    csv_writer.writerow([value for value in row_dict.values()])
-
-            print(f"Data has been written to {csv_file} successfully.")
-
-        except Error as err:
-            print(f"Error: {err}")
-        
-        finally:
-            if connection.is_connected():
-                cursor.close()
-                connection.close()
-                print("MySQL connection is closed")
-
-if __name__ == "__main__":
-    main()
-
-
-# --------------------------------------------------------------------------------------
-
+# from fastapi import FastAPI, HTTPException, Query
+# from typing import Optional
+# import mysql.connector
+# from mysql.connector import Error
 # import csv
-import mysql.connector
-from mysql.connector import Error
-import pandas as pd
 # import os
 # from tqdm import tqdm
+# from pathlib import Path  
 
-def create_connection():
-    try:
-        connection = mysql.connector.connect(
-            host="sem-prod-cloud-sql-proxy.service.gcp-us-west-1.consul",
-            user="sem_gizmo_api_ro",
-            password="v95MbUkEKuFbWYN9PVB9MFFLMxFsayAx",
-            database="wordpress_info",
-            charset='utf8mb4',
-            collation='utf8mb4_unicode_ci'
-        )
-        print(f"Connection to wordpress_info database successful")
-        return connection
-    except Error as e:
-        print(f"The error '{e}' occurred")
-        return None
+# app = FastAPI()
+
+
+
+# def create_connection(db_name: str):
+#     try:
+#         connection = mysql.connector.connect(
+#             host="sem-prod-wordpress-galera.service.gcp-us-west-1.consul",
+#             user="sem_wordpress_sites_ro",
+#             password="OkwPBEkE2o2jYKuhFmH0lQA09Up5nuEV",
+#             database=db_name,
+#             charset='utf8mb4',
+#             collation='utf8mb4_unicode_ci'
+#         )
+#         print(f"Connection to {db_name} database successful")
+#         return connection
+#     except Error as e:
+#         print(f"The error '{e}' occurred")
+#         return None
+
+
+# def fetch_data(connection, domain_name: str):
+#     cursor = connection.cursor()
+#     try:
+#         # SQL query to fetch the desired data
+#         query = f'''
+#         SELECT
+#             wp_post.ID, 
+#             wp_post.post_title,
+#             wp_post.post_date,
+#             wp_post.post_status,
+#             CONCAT("https://{domain_name}/", wp_post.post_name, "/") AS slug,
+#             (
+#                 SELECT GROUP_CONCAT(wt.name) AS name
+#                 FROM wp_term_relationships wtr
+#                 JOIN wp_term_taxonomy wtt ON wtt.term_taxonomy_id = wtr.term_taxonomy_id
+#                 JOIN wp_terms wt ON wt.term_id = wtt.term_id
+#                 WHERE wtr.object_id = wp_post.ID AND wtt.taxonomy = 'post_tag'
+#             ) AS tags,
+#             (
+#                 SELECT GROUP_CONCAT(wt.name) AS name
+#                 FROM wp_term_relationships wtr
+#                 JOIN wp_term_taxonomy wtt ON wtt.term_taxonomy_id = wtr.term_taxonomy_id
+#                 JOIN wp_terms wt ON wt.term_id = wtt.term_id
+#                 WHERE wtr.object_id = wp_post.ID AND wtt.taxonomy = 'category'
+#             ) AS categories,
+#             (
+#                 SELECT CONCAT("https://{domain_name}/wp-content/uploads/", wpm2.meta_value)
+#                 FROM wp_postmeta wpm1
+#                 JOIN wp_postmeta wpm2 ON wpm1.meta_value = wpm2.post_id
+#                 WHERE wpm1.meta_key = '_thumbnail_id' AND wpm1.post_id = wp_post.ID
+#                 LIMIT 1
+#             ) AS image_url,
+#             (
+#                 SELECT meta_value 
+#                 FROM wp_postmeta wpm3 
+#                 WHERE wpm3.post_id = wp_post.ID AND wpm3.meta_key = 'wp_sem_cf_subtitle'
+#                 LIMIT 1
+#             ) AS subtitle            
+#         FROM wp_posts wp_post
+#         WHERE wp_post.post_type = 'post' AND wp_post.post_status = 'publish';
+#         '''  # wp_post.post_content removed from query
+
+#         cursor.execute(query)
+#         result = cursor.fetchall()
+#         column_names = cursor.column_names
+#         return result, column_names
+
+#     except Error as err:
+#         raise HTTPException(status_code=500, detail=str(err))
+
+#     finally:
+#         cursor.close()
+
+
+# def write_to_csv(result_dicts, column_names, domain_name):
+#     # downloads_folder = r'/mnt/c/Users/tiwari.g/Downloads'
+#     downloads_folder = get_downloads_folder()
+#     csv_file = os.path.join(downloads_folder, f'{domain_name}_articledump.csv')
+
+#     if not os.path.exists(downloads_folder):
+#         os.makedirs(downloads_folder)
+
+#     with open(csv_file, 'w', newline='', encoding='utf-8-sig') as csv_obj:
+#         csv_writer = csv.writer(csv_obj)
+#         csv_writer.writerow(column_names)
+#         for row_dict in tqdm(result_dicts, desc="Downloading", unit="rows"):
+#             csv_writer.writerow([str(value) if value is not None else '' for value in row_dict.values()])
+
+#     return csv_file
+
+# def get_downloads_folder():
+#     # Determine the user's Downloads folder path depending on OS
+#     if os.name == "nt":
+#         # Windows
+#         downloads_path = str(Path.home() / "Downloads")
+#     else:
+#         # Linux or MacOS
+#         downloads_path = str(Path.home() / "Downloads") # type: ignore
     
-def main(database):
-    domain = input("Enter Domain name without TLD : ")
+#     return downloads_path
 
-    connection = create_connection(database)
+# @app.post("/articledump/")
+# def articledump(domain: str = Query(..., description="Enter the domain name you want to connect to."),
+#                         tld: str = Query(..., description="Enter the TLD of your domain name.")):
+#     db_name = domain + "_" + tld
+#     domain_name = f"{domain}.{tld}"
 
-    if connection:
-        try:
-            # Create a cursor object
-            cursor = connection.cursor()
-            # SQL query to fetch the desired data
-            query = f'''
-            select site_name,json_config from wordpress_info.credentials 
-            where site_name like '%{domain}%'order by id desc limit 1;
-            ''' # wp_post.post_content removed from query
+#     connection = create_connection(db_name)
+#     if connection:
+#         try:
+#             result, column_names = fetch_data(connection, domain_name)
+#             result_dicts = [dict(zip(column_names, row)) for row in result]
 
-            # Execute the SQL query
-            cursor.execute(query)
+#             # Write data to CSV
+#             csv_file = write_to_csv(result_dicts, column_names, domain_name)
 
-            # Fetch all the rows
-            result = cursor.fetchall()
-            column_names = cursor.column_names
-            print("result")
-        except Error as err:
-            print(f"Error: {err}")
+#             return {"message": f"Data has been written to {csv_file} successfully."}
+
+#         except Exception as e:
+#             raise HTTPException(status_code=500, detail=str(e))
+
+#         finally:
+#             if connection.is_connected():
+#                 connection.close()
+#                 print("MySQL connection is closed")
+
+#     else:
+#         raise HTTPException(status_code=500, detail="Cannot connect to the database.")
+
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="127.0.0.1", port=8000)
+import mysql.connector
+import json
+import csv
+import pandas as pd  # For reading data from Excel sheets
+
+# Database connection information
+db_config = {
+    'host': "sem-prod-cloud-sql-proxy.service.gcp-us-west-1.consul",
+    'user': "sem_gizmo_api_ro",
+    'password': "v95MbUkEKuFbWYN9PVB9MFFLMxFsayAx",
+    'database': "wordpress_info",
+    'charset': 'utf8mb4',
+    'collation': 'utf8mb4_unicode_ci'
+}
+
+# Define the column headers for the output CSV file.
+output_columns = ['Domain', 'Customer ID', 'Pixel ID', 'Pixel Name', 'Route', 'Parking URL']
+
+def get_site_info_by_domain(domain):
+    """
+    Fetch site info from the database based on the domain.
+    Return the result as a list of dictionaries.
+    """
+    connection = None
+    try:
+        # Connect to the database
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        # SQL query to match site name (domain)
+        query = '''
+            SELECT site_name, json_config 
+            FROM wordpress_info.credentials 
+            WHERE site_name LIKE %s 
+            ORDER BY id DESC LIMIT 1;
+        '''
+        
+        # Execute the query
+        cursor.execute(query, (f'%{domain}%',))
+        
+        # Fetch the result
+        result = cursor.fetchone()
+
+        if result:
+            site_name = result.get("site_name")
+            json_config_str = result.get("json_config")
+
+            # Convert json_config string to a Python dictionary
+            json_config = json.loads(json_config_str)
+
+            extracted_data = []  # To hold each row of extracted data
+            
+            # Extract pixel data and URLs for each source in customer's configuration
+            sources = json_config.get("sources", {})
+
+            for source_key, source_value in sources.items():
+                # For each source, extract the appropriate fields
+                customer_id = source_value.get("customer_id", "")
+                conversion_id = source_value.get("conversion_id", "")
+                conversion_label = source_value.get("conversion_label", "")
+                route = source_value.get("route", "")
+                pixel_id = source_value.get("pixel_id", "")
+                parking_url = source_value.get("parking_crew_url", "").strip()  # Handle empty strings
+
+                # If no conversion_id, fallback to pixel_id. If none, display N/A.
+                pixel_to_display = conversion_id if conversion_id else (pixel_id if pixel_id else "N/A")
+                
+                # If no conversion_label, display N/A.
+                pixel_name = conversion_label if conversion_label else "N/A"
+                
+                # Ensure the Parking URL defaults to 'N/A' when not present or empty
+                parking_url = parking_url if parking_url else "N/A"
+                
+                # Append the extracted data as a dictionary (row)
+                extracted_data.append({
+                    'Domain': site_name,
+                    'Customer ID': customer_id,
+                    'Pixel ID': pixel_to_display,
+                    'Pixel Name': pixel_name,
+                    'Route': route,
+                    'Parking URL': parking_url
+                })
+
+            return extracted_data
+        else:
+            print(f"No results found for domain: {domain}")
+            return []
+
+    except mysql.connector.Error as e:
+        print(f"Error occurred: {e}")
+        return []
+    
+    finally:
+        if connection:
+            connection.close()
+
+def process_domains_from_excel(input_excel_path, output_csv_path):
+    """
+    Read domain names from an Excel file (`domain_name` column) and 
+    merge the results into a single CSV, `wpconfig_details.csv`.
+    """
+    try:
+        # Open the output CSV file in write mode
+        with open(output_csv_path, mode='w', newline='', encoding='utf-8') as outfile:
+            writer = csv.DictWriter(outfile, fieldnames=output_columns)
+            
+            # Write the CSV header row
+            writer.writeheader()
+
+            # Read the Excel file into a pandas DataFrame
+            df = pd.read_excel(input_excel_path)
+
+            # Extract the domain names - assuming a column named 'domain_name'
+            domains = df['domain_name'].tolist()
+
+            # Process each domain
+            for domain in domains:
+                if domain:
+                    # Fetch site info for the current domain
+                    data = get_site_info_by_domain(domain.strip())
+                    
+                    # Write each row of data to the common output CSV file
+                    for row_data in data:
+                        writer.writerow(row_data)
+
+        print(f"Data extraction completed. Results are saved in '{output_csv_path}'.")
+
+    except Exception as e:
+        print(f"Error processing files: {e}")
+
+# Paths to the input Excel file and the output CSV file
+input_excel_file = '/mnt/c/Users/tiwari.g/OneDrive - MEDIA.NET SOFTWARE SERVICES (INDIA) PRIVATE LIMITED/Documents/Python for automate/wp_config/wpconfig_csv.xlsx'
+output_csv_file = '/mnt/c/Users/tiwari.g/Downloads/wpconfig_details.csv'
+
+# Process domains from Excel and save merged results into one CSV file
+process_domains_from_excel(input_excel_file, output_csv_file)

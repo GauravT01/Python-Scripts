@@ -42,24 +42,34 @@ def get_site_info_by_domain(domain):
             print(f"Site Name: {site_name}")
             print("Extracted Data:")
 
-            # Extract pixel data for each source in customer's configuration
+            # Extract pixel data and URLs for each source in customer's configuration
             sources = json_config.get("sources", {})
 
             for source_key, source_value in sources.items():
-                # For each source, we will extract the appropriate fields 
+                # For each source, extract the appropriate fields
                 customer_id = source_value.get("customer_id", "")
                 conversion_id = source_value.get("conversion_id", "")
                 conversion_label = source_value.get("conversion_label", "")
                 route = source_value.get("route", "")
-                pixel_id = source_value.get("pixel_id","")
-                pixel_converison_type = source_value.get("pixel_conversion_type","")
+                pixel_id = source_value.get("pixel_id", "")
+                parking_url = source_value.get("parking_crew_url", "").strip()  # Handle empty strings
 
-                print(f"Customer ID: {customer_id}")
-                pixel_to_display = conversion_id if conversion_id else pixel_id
+                # If no conversion_id, fallback to pixel_id. If none, display N/A.
+                pixel_to_display = conversion_id if conversion_id else (pixel_id if pixel_id else "N/A")
+                
+                # If no conversion_label, display N/A.
+                pixel_name = conversion_label if conversion_label else "N/A"
+                
+                # Ensure the Parking URL defaults to 'N/A' when not present or empty
+                parking_url = parking_url if parking_url else "N/A"
+                
+                # Extract data per structure
+                print(f"Source Key: {source_key}")
+                print(f"  Customer ID: {customer_id}")
                 print(f"  Pixel ID: {pixel_to_display}")
-                conversion_to_name = conversion_label if conversion_label else pixel_converison_type        
-                print(f"  Pixel Name: {conversion_to_name}")
+                print(f"  Pixel Name: {pixel_name}")
                 print(f"  Route: {route}")
+                print(f"  Parking URL: {parking_url}")
                 print("")
 
         else:

@@ -66,7 +66,8 @@ def fetch_and_save_articles(domain, tld):
                     FROM wp_postmeta wpm3 
                     WHERE wpm3.post_id = wp_post.ID AND wpm3.meta_key = 'wp_sem_cf_subtitle'
                     LIMIT 1
-                ) AS subtitle
+                ) AS subtitle,
+                wp_post.post_content
             FROM wp_posts wp_post
             WHERE wp_post.post_type = 'post' AND wp_post.post_status = 'publish';
             '''#wp_post.post_content removed
