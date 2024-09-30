@@ -8,9 +8,9 @@ from tqdm import tqdm
 def create_connection(db_name):
     try:
         connection = mysql.connector.connect(
-            host="sem-prod-wordpress-galera.service.gcp-us-west-1.consul",
+            host="sem-prod-cloud-sql-proxy.service.gcp-us-west-1.consul",
             user="sem_wordpress_sites_ro",
-            password="OkwPBEkE2o2jYKuhFmH0lQA09Up5nuEV",
+            password="8HMATYXt0K1J3FdeuG7NR6Dx4lkgt4ei",
             database=db_name,
             charset='utf8mb4',
             collation='utf8mb4_unicode_ci'
