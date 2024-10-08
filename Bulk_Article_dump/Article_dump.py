@@ -40,7 +40,7 @@ def main():
                 wp_post.post_title,
                 wp_post.post_date,
                 wp_post.post_status,
-                CONCAT("https://{Domain_name}/", wp_post.post_name, "/") AS slug,
+                CONCAT("https://{domain_name}/", wp_post.post_name, "/") AS slug,
                 (
                     SELECT GROUP_CONCAT(wt.name) AS name
                     FROM wp_term_relationships wtr
@@ -56,7 +56,7 @@ def main():
                     WHERE wtr.object_id = wp_post.ID AND wtt.taxonomy = 'category'
                 ) AS categories,
                 (
-                    SELECT CONCAT("https://{Domain_name}/wp-content/uploads/", wpm2.meta_value)
+                    SELECT CONCAT("https://{domain_name}/wp-content/uploads/", wpm2.meta_value)
                     FROM wp_postmeta wpm1
                     JOIN wp_postmeta wpm2 ON wpm1.meta_value = wpm2.post_id
                     WHERE wpm1.meta_key = '_thumbnail_id' AND wpm1.post_id = wp_post.ID
@@ -67,7 +67,7 @@ def main():
                     FROM wp_postmeta wpm3 
                     WHERE wpm3.post_id = wp_post.ID AND wpm3.meta_key = 'wp_sem_cf_subtitle'
                     LIMIT 1
-                ) AS subtitle            
+                ) AS subtitle
             FROM wp_posts wp_post
             WHERE wp_post.post_type = 'post' AND wp_post.post_status = 'publish';
             ''' # wp_post.post_content removed from query
